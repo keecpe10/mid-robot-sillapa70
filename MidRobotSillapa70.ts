@@ -41,9 +41,9 @@ enum RobotButton {
   * Enumeration of เซ็นเซอร์.
   */
 enum SensorPanel {
-    //% block="ด้านหน้า 0-5"
+    //% block=" 0-5"
     FRONT,
-    //% block="ด้านหลัง 6-7"
+    //% block=" 6-7"
     BLACK
 }
 
@@ -67,6 +67,16 @@ enum SensorNumber {
     Number6 = 6,
     //% block="7"
     Number7 = 7
+}
+
+/**
+  * Enumeration of Servo.
+  */
+enum ibitServo {
+    //% block="1"
+    SV1,
+    //% block="2"
+    SV2
 }
 
 // Add your code here
@@ -111,29 +121,57 @@ namespace MidRobot {
     //% subcategory=พื้นฐาน
     //% group="พื้นฐาน"
     //% weight=99
-    function set_motors(left_speed: number, right_speed: number): void {
-        left_speed = pins.map(left_speed, 0, 100, 0, 1023)
-        right_speed = pins.map(right_speed, 0, 100, 0, 1023)
+    function set_motors(right_speed: number, left_speed: number): void {
+
+        //let l_speed = pins.map(left_speed, 0, 100, 0, 1023)
+        //let r_speed = pins.map(right_speed, 0, 100, 0, 1023)
         //Forward
         if (right_speed >= 0 && left_speed >= 0) {
+            let l_speed = pins.map(left_speed, 0, 100, 0, 1023)
+            let r_speed = pins.map(right_speed, 0, 100, 0, 1023)
             pins.digitalWritePin(DigitalPin.P13, 1)
-            pins.analogWritePin(AnalogPin.P14, left_speed)
+            pins.analogWritePin(AnalogPin.P14, l_speed)
             pins.digitalWritePin(DigitalPin.P15, 0)
-            pins.analogWritePin(AnalogPin.P16, right_speed)
+            pins.analogWritePin(AnalogPin.P16, r_speed)
         }
         if (right_speed >= 0 && left_speed < 0) {
-            left_speed = -left_speed
+            let l_speed = pins.map(-left_speed, 0, 100, 0, 1023)
+            let r_speed = pins.map(right_speed, 0, 100, 0, 1023)
             pins.digitalWritePin(DigitalPin.P13, 0)
-            pins.analogWritePin(AnalogPin.P14, left_speed)
+            pins.analogWritePin(AnalogPin.P14, l_speed)
             pins.digitalWritePin(DigitalPin.P15, 0)
-            pins.analogWritePin(AnalogPin.P16, right_speed)
+            pins.analogWritePin(AnalogPin.P16, r_speed)
         }
         if (right_speed < 0 && left_speed >= 0) {
-            right_speed = -right_speed
+            let l_speed = pins.map(left_speed, 0, 100, 0, 1023)
+            let r_speed = pins.map(-right_speed, 0, 100, 0, 1023)
             pins.digitalWritePin(DigitalPin.P13, 1)
-            pins.analogWritePin(AnalogPin.P14, left_speed)
+            pins.analogWritePin(AnalogPin.P14, l_speed)
             pins.digitalWritePin(DigitalPin.P15, 1)
-            pins.analogWritePin(AnalogPin.P16, right_speed)
+            pins.analogWritePin(AnalogPin.P16, r_speed)
+        }
+
+        if (right_speed < 0 && left_speed < 0) {
+            let l_speed = pins.map(-left_speed, 0, 100, 0, 1023)
+            let r_speed = pins.map(-right_speed, 0, 100, 0, 1023)
+            pins.digitalWritePin(DigitalPin.P13, 0)
+            pins.analogWritePin(AnalogPin.P14, l_speed)
+            pins.digitalWritePin(DigitalPin.P15, 1)
+            pins.analogWritePin(AnalogPin.P16, r_speed)
+        }
+    }
+
+    function motors_puase(time:number):void{
+        let previousMillis = input.runningTime()
+        while (input.runningTime() - previousMillis < time) {
+            set_motors(0, 0)
+        }
+    }
+
+    function set_motors_times(time: number,speed:number): void {
+        let previousMillis = input.runningTime()
+        while (input.runningTime() - previousMillis < time) {
+            set_motors(speed, speed)
         }
     }
 
@@ -185,6 +223,18 @@ namespace MidRobot {
     }
 
     ///////////////ระดับกลาง////////////////////////////////
+    /**เริ่มทำงาน
+      */
+    //% help=math/map weight=10 blockGap=8
+    //% blockId=MidRobot_initStart block="เริ่มการทำงาน"
+    //% subcategory=ระดับกลาง
+    //% group="ระดับกลาง"
+    //% weight=100
+    export function initStart(): void {
+        Servo(1, 0);
+        Servo(2, 0);
+    }
+
     /**อ่านค่าเซ็นเซอร์
       */
     //% help=math/map weight=10 blockGap=8
@@ -192,11 +242,11 @@ namespace MidRobot {
     //% subcategory=ระดับกลาง
     //% group="ระดับกลาง"
     //% inlineInputMode=inline
-    //% weight=100
+    //% weight=99
     export function ReadSensorPanel(panel: SensorPanel): void {
         if (panel == SensorPanel.FRONT) {
             serial.writeLine("" + ReadADC(Sensors[0])
-                +" : "+ ReadADC(Sensors[1])
+                +" : " + ReadADC(Sensors[1])
                 + " : " + ReadADC(Sensors[2])
                 + " : " + ReadADC(Sensors[3])
                 + " : " + ReadADC(Sensors[4])
@@ -206,6 +256,8 @@ namespace MidRobot {
             serial.writeLine("" + ReadADC(Sensors[6])
                 + " : " + ReadADC(Sensors[7]))
         }
+
+        pause(100);
     }
 
     /**กำหนดค่าเซ็นเซอร์
@@ -215,12 +267,246 @@ namespace MidRobot {
     //% subcategory=ระดับกลาง
     //% group="ระดับกลาง"
     
-    //% weight=99
+    //% weight=98
     export function SetSensorValue(sensor: SensorNumber,min:number,max:number): void {
         MinValueSensors[sensor] = min
         MaxValueSensors[sensor] = max
-        AvgValueSensors[sensor] = max-min
+        AvgValueSensors[sensor] = (max+min)/2
     }
 
+    function FwLine(speed: number): void {
+        //ไปข้างหน้าจนกระทั่งเซ็นเซอร์ด้านหน้าตัวใดตัวหนึ่งเจอเส้นสีดำ
+        while (ReadADC(Sensors[1]) < AvgValueSensors[1] && ReadADC(Sensors[2]) < AvgValueSensors[2]) {
+            if (ReadADC(Sensors[0]) > AvgValueSensors[0]) {
+                set_motors(speed, speed - 20);
+            } else if (ReadADC(Sensors[3]) > AvgValueSensors[3]) {
+                set_motors(speed - 20, speed);
+            } else {
+                set_motors(speed, speed);
+            }
+        }
+        motors_puase(100);
+        //ปรับให้เซ็นเซอร์ 2 ตัวข้างหน้าอยู่ที่เส้น
 
+        while (ReadADC(Sensors[1]) > AvgValueSensors[1] && ReadADC(Sensors[2]) < AvgValueSensors[2]) {
+            set_motors(0, speed);
+        }
+
+        while (ReadADC(Sensors[1]) < AvgValueSensors[1] && ReadADC(Sensors[2]) > AvgValueSensors[2]) {
+            set_motors(speed, 0);
+        }
+        //หยุดมอเตอร์ 100ms
+        motors_puase(100);
+
+    }
+    function Fw(speed: number): void {
+        if (ReadADC(Sensors[0]) > AvgValueSensors[0]) {
+            set_motors(speed, speed - 20);
+            //set_motors(speed-20, speed);
+        } else if (ReadADC(Sensors[3]) > AvgValueSensors[3]) {
+            set_motors(speed - 20, speed);
+            //set_motors(speed , speed- 20);
+        } else {
+            set_motors(speed, speed);
+        }
+    }
+    /**หมุนเช็คเส้นด้านหลัง
+         * @param speed percent of maximum speed, eg: 50
+          * @param time percent of maximum time, eg: 500
+          */
+    //% help=math/map weight=10 blockGap=8
+    //% blockId=MidRobot_spinCheckLine block="หมุน %direction| ความเร็ว %speed|เวลา %time ms แล้วเช็คเส้นด้านหลัง"
+    //% speed.min=0 speed.max=100
+    //% time.min=0
+    //% subcategory=ระดับกลาง
+    //% group="ระดับกลาง"
+    //% inlineInputMode=inline
+    //% weight=96
+    export function spinCheckLine(direction: DirectionSpin, speed: number, time: number):void{
+        spin(direction, speed, time);
+        while (ReadADC(Sensors[4]) < AvgValueSensors[4] && ReadADC(Sensors[5]) < AvgValueSensors[5]) {
+            set_motors(-speed, -speed);
+        }
+        motors_puase(100);
+        //ปรับให้เซ็นเซอร์ 2 ตัวข้างหน้าอยู่ที่เส้น
+
+        while (ReadADC(Sensors[4]) > AvgValueSensors[4] && ReadADC(Sensors[5]) < AvgValueSensors[5]) {
+            set_motors(0, -speed);
+        }
+
+        while (ReadADC(Sensors[4]) < AvgValueSensors[4] && ReadADC(Sensors[5]) > AvgValueSensors[5]) {
+            set_motors(-speed, 0);
+        }
+        //หยุดมอเตอร์ 100ms
+        motors_puase(100);
+
+    }
+
+    function Servo(Servo: ibitServo, Degree: number): void {
+        if (Servo == ibitServo.SV1) {
+            pins.servoWritePin(AnalogPin.P8, Degree)
+        }
+        if (Servo == ibitServo.SV2) {
+            pins.servoWritePin(AnalogPin.P12, Degree)
+        }
+    }
+
+    /**ปล่อยลูกบาศก์
+      */
+    //% help=math/map weight=10 blockGap=8
+    //% blockId=MidRobot_LetCube block="ปล่อยลูกบาศก์ %servo"
+    //% subcategory=ระดับกลาง
+    //% group="ระดับกลาง"
+    //% weight=90
+    export function LetCube(servo:ibitServo): void {
+        Servo(servo, 90);
+        pause(300);
+        Servo(servo, 0);
+        pause(100);
+    }
+
+    /**ไปข้างหน้าจับเวลา
+     * @param speed percent of maximum speed, eg: 50
+      * @param time percent of maximum time, eg: 500
+      */
+    //% help=math/map weight=10 blockGap=8
+    //% blockId=MidRobot_FwTime block="ไปข้างหน้าความเร็ว %speed| เวลา %time ms"
+    //% subcategory=ระดับกลาง
+    //% group="ระดับกลาง"
+    //% speed.min=0 speed.max=100
+    //% time.min=0
+    //% weight=96
+    export function FwTime(speed: number, time: number): void {
+        let previousMillis = input.runningTime()
+        while (input.runningTime() - previousMillis < time) {
+            Fw(speed);
+        }
+    }
+
+    /**ไปข้างหน้าจับเวลา
+     * @param speed percent of maximum speed, eg: 50
+      * @param time percent of maximum time, eg: 500
+      */
+    //% help=math/map weight=10 blockGap=8
+    //% blockId=MidRobot_FwTime block="ถอยหลังความเร็ว %speed| เวลา %time ms"
+    //% subcategory=ระดับกลาง
+    //% group="ระดับกลาง"
+    //% speed.min=0 speed.max=100
+    //% time.min=0
+    //% weight=96
+    export function BwTime(speed: number, time: number): void {
+        let previousMillis = input.runningTime()
+        while (input.runningTime() - previousMillis < time) {
+            set_motors(-speed, -speed);
+        }
+    }
+
+    /**ไปข้างหน้าจนเจอเส้นดำแล้วปรับเซ็นเซอร์ด้านหน้าให้เจอเส้นดำทั้งคู่
+     * @param speed percent of maximum speed, eg: 50
+      */
+    //% help=math/map weight=10 blockGap=8
+    //% blockId=MidRobot_FwBlackLine block="ไปข้างหน้าความเร็ว %speed"
+    //% subcategory=ระดับกลาง
+    //% group="ระดับกลาง"
+    //% speed.min=0 speed.max=100
+    //% weight=96
+    function FwBlackLine(speed: number): void {
+        FwLine(speed);
+        set_motors_times(200, -50);
+        motors_puase(100);
+        FwLine(speed);
+        set_motors_times(100, -50);
+    }
+
+    /**ไปข้างหน้าจนเจอเส้นดำ
+     * @param speed percent of maximum speed, eg: 50
+     *  @param respeed percent of maximum respeed, eg: 25
+      * @param time percent of maximum time, eg: 500
+      */
+    //% help=math/map weight=10 blockGap=8
+    //% blockId=MidRobot_FwBlackTime block="ไปข้างหน้าความเร็ว %speed| เวลา %time ms| ลดความเร็ว %respeed จนเจอเส้นดำ"
+    //% subcategory=ระดับกลาง
+    //% group="ระดับกลาง"
+    //% speed.min=0 speed.max=100
+    //% respeed.min=0 respeed.max=100
+    //% time.min=0
+    //% weight=96
+    export function FwBlackTime(speed:number, time:number, respeed:number): void {
+        let previousMillis = input.runningTime()
+        while (input.runningTime() - previousMillis < time) {
+            Fw(speed);
+        }
+        FwBlackLine(respeed);
+    }
+
+    /**จบการทำงาน
+      */
+    //% help=math/map weight=10 blockGap=8
+    //% blockId=MidRobot_Stops block="จบการทำงาน"
+    //% subcategory=ระดับกลาง
+    //% group="ระดับกลาง"
+    //% weight=50
+    export function Stops(): void {
+        while(1){
+            set_motors(0,0);
+        }
+    }
+
+    /**Test Function
+      */
+    //% help=math/map weight=10 blockGap=8
+    //% blockId=MidRobot_Test block="Test"
+    //% subcategory=ระดับกลาง
+    //% group="ระดับกลาง"
+    //% weight=50
+    export function Test(): void {
+       // set_motors(100, 100);
+        /*serial.writeLine("" + ReadADC(Sensors[0])
+            + " : " + ReadADC(Sensors[1])
+            + " : " + ReadADC(Sensors[2])
+            + " : " + ReadADC(Sensors[3])
+            + " : " + ReadADC(Sensors[4]))
+
+        serial.writeLine("" + AvgValueSensors[0]
+            + " : " + AvgValueSensors[1]
+        + " : " + AvgValueSensors[2]
+            + " : " + AvgValueSensors[3]
+            + " : " + AvgValueSensors[4]
+            + " : " + AvgValueSensors[5])*/
+
+        /*while (ReadADC(Sensors[4]) < AvgValueSensors[4] && ReadADC(Sensors[5]) < AvgValueSensors[5]) {
+            set_motors(-60, -60);
+        }
+        motors_puase(100);
+        //ปรับให้เซ็นเซอร์ 2 ตัวข้างหน้าอยู่ที่เส้น
+
+        while (ReadADC(Sensors[4]) > AvgValueSensors[4] && ReadADC(Sensors[5]) < AvgValueSensors[5]) {
+            set_motors(0, -60);
+        }
+
+        while (ReadADC(Sensors[4]) < AvgValueSensors[4] && ReadADC(Sensors[5]) > AvgValueSensors[5]) {
+            set_motors(-60, 0);
+        }
+        //หยุดมอเตอร์ 100ms
+        motors_puase(100);*/
+        let speed = 60;
+        while (ReadADC(Sensors[1]) < AvgValueSensors[1] && ReadADC(Sensors[2]) < AvgValueSensors[2]) {
+            
+                set_motors(speed, speed);
+            
+        }
+        motors_puase(100);
+        //ปรับให้เซ็นเซอร์ 2 ตัวข้างหน้าอยู่ที่เส้น
+
+        while (ReadADC(Sensors[0]) > AvgValueSensors[0] && ReadADC(Sensors[3]) < AvgValueSensors[3]) {
+            set_motors(0, speed);
+        }
+
+        while (ReadADC(Sensors[0]) < AvgValueSensors[0] && ReadADC(Sensors[3]) > AvgValueSensors[3]) {
+            set_motors(speed, 0);
+        }
+        //หยุดมอเตอร์ 100ms
+        motors_puase(100);
+
+    }
 }
